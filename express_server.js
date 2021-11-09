@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
-function generateRandomString() {
+const generateRandomString = function() {
   let result = "";
   let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for (let i = 0; i < 6; i++) {
@@ -56,7 +56,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[newShortURL] = req.body.longURL;
   console.log(req.body);  // Log the POST request body to the console
   res.redirect(`/urls/:${newShortURL}`);
-})
+});
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
