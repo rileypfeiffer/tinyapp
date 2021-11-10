@@ -77,6 +77,11 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("login", templateVars);
+});
+
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
@@ -116,13 +121,9 @@ app.post("/logout", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
-    console.log("Error Code: 400. Please enter both an e-mail and a password.");
-    res.redirect("/urls");
-    console.log(users);
+    res.status(400).send("Please enter both a valid e-mail and a password.");
   } else if (emailLookupHelper(req.body.email) === true) {
-    console.log("Error Code: 400. Email already in use.");
-    res.redirect("/urls");
-    console.log(users);
+    res.status(400).send("Email already in use.");
   } else {
   let user = generateRandomString();
   users[user] = { id: user, email: req.body.email, password: req.body.password };
@@ -131,3 +132,5 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
   }
 });
+
+
