@@ -11,6 +11,15 @@ const generateRandomString = function() {
   return result;
 };
 
+const emailLookupHelper = function(str) {
+  for (let user in users) {
+    if (users[user].email === str) {
+      return true;
+    }
+  }
+  return false;
+};
+
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -106,9 +115,19 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    console.log("Error Code: 400. Please enter both an e-mail and a password.");
+    res.redirect("/urls");
+    console.log(users);
+  } else if (emailLookupHelper(req.body.email) === true) {
+    console.log("Error Code: 400. Email already in use.");
+    res.redirect("/urls");
+    console.log(users);
+  } else {
   let user = generateRandomString();
   users[user] = { id: user, email: req.body.email, password: req.body.password };
   res.cookie("user_id", user);
   console.log(users);
   res.redirect("/urls");
+  }
 });
