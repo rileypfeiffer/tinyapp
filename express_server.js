@@ -11,6 +11,20 @@ const generateRandomString = function() {
   return result;
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+
 app.set("view engine", "ejs"); // Tells the Express app to use EJS as its templating engine
 
 const urlDatabase = {
@@ -41,7 +55,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
+  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -49,8 +63,13 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("register", templateVars);
+});
+
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
@@ -83,5 +102,13 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
+  res.redirect("/urls");
+});
+
+app.post("/register", (req, res) => {
+  let user = generateRandomString();
+  users[user] = { id: user, email: req.body.email, password: req.body.password };
+  res.cookie("user_id", user);
+  console.log(users);
   res.redirect("/urls");
 });
