@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const bcrypt = require('bcryptjs');
 const PORT = 8080; // default port 8080
 
 const generateRandomString = function() {
@@ -107,10 +108,10 @@ app.get("/login", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
-    console.log(urlDatabase[req.params.shortURL])
-    res.status(400).send("Does not exist.");
+    const templateVars = { user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: undefined, userURL: urlDatabase[req.params.shortURL] };
+    res.render("urls_show", templateVars);
   } else {
-    const templateVars = { user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], userURL: urlDatabase[req.params.shortURL]["userID"] };
+    const templateVars = { user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], userURL: urlDatabase[req.params.shortURL] };
     res.render("urls_show", templateVars);
   }
 });
@@ -123,7 +124,7 @@ app.post("/urls", (req, res) => {
   const newShortURL = generateRandomString();
   urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"]};
   console.log(req.body);  // Log the POST request body to the console
-  res.redirect(`/urls/:${newShortURL}`);
+  res.redirect(`/urls/${newShortURL}`);
   }
 });
 
@@ -153,9 +154,9 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  if (emailLookupHelper(req.body.email, users)) {
-    const user = emailLookupHelper(req.body.email, users);
-    if (req.body.password === users[user].password) {
+  const user = emailLookupHelper(req.body.email, users);
+  if (emailLookupHelper(req.body.email, users)) { 
+    if (bcrypt.compareSync(req.body.password, users[user].password)) {
       res.cookie("user_id", user);
       res.redirect("/urls");
     } else {
@@ -178,10 +179,10 @@ app.post("/register", (req, res) => {
     res.status(400).send("Email already in use.");
   } else {
   let user = generateRandomString();
-  users[user] = { id: user, email: req.body.email, password: req.body.password };
+  users[user] = { id: user, email: req.body.email, password: bcrypt.hashSync(req.body.password, 10) };
   res.cookie("user_id", user);
-  console.log(users);
   res.redirect("/urls");
+  console.log(users);
   }
 });
 
