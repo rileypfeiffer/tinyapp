@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const bcrypt = require('bcryptjs');
+const { emailLookupHelper } = require('./helpers');
 const cookieSession = require('cookie-session');
 const PORT = 8080; // default port 8080
 
@@ -11,15 +12,6 @@ const generateRandomString = function() {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
-};
-
-const emailLookupHelper = function(str) {
-  for (let user in users) {
-    if (users[user].email === str) {
-      return user;
-    }
-  }
-  return null;
 };
 
 const urlsForUser = function(id) {
@@ -178,7 +170,7 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please enter both a valid e-mail and a password.");
-  } else if (emailLookupHelper(req.body.email) !== null) {
+  } else if (emailLookupHelper(req.body.email, users) !== undefined) {
     res.status(400).send("Email already in use.");
   } else {
   let user = generateRandomString();
