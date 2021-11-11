@@ -20,6 +20,16 @@ const emailLookupHelper = function(str) {
   return null;
 };
 
+const urlsForUser = function(id) {
+  let userShortURLs = {};
+  for (let url in urlDatabase) {
+    if (id === urlDatabase[url].userID) {
+      userShortURLs[url] = urlDatabase[url].longURL;
+    }
+  }
+  return userShortURLs;
+};
+
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -70,7 +80,9 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+  const user = req.cookies["user_id"];
+  let urlsOfUser = urlsForUser(user);
+  const templateVars = { user: users[req.cookies["user_id"]], urls: urlsOfUser };
   res.render("urls_index", templateVars);
 });
 
@@ -95,6 +107,7 @@ app.get("/login", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
+    console.log(urlDatabase[req.params.shortURL])
     res.status(400).send("Does not exist.");
   } else {
     const templateVars = { user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]["longURL"], userURL: urlDatabase[req.params.shortURL]["userID"] };
@@ -103,10 +116,15 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (users[req.cookies["user_id"]] === undefined) {
+    res.status(400).send("Login to create a URL");
+  }
+  else {
   const newShortURL = generateRandomString();
   urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"]};
   console.log(req.body);  // Log the POST request body to the console
   res.redirect(`/urls/:${newShortURL}`);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -119,8 +137,14 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  const user = req.cookies["user_id"];
+  if (urlDatabase[req.params.shortURL] && user === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("You cannot delete a URL that you did not create");
+    res.redirect("/urls");
+  }
 });
 
 app.post("/urls/:id", (req, res) => {
