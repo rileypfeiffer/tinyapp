@@ -14,10 +14,10 @@ const generateRandomString = function() {
 const emailLookupHelper = function(str) {
   for (let user in users) {
     if (users[user].email === str) {
-      return true;
+      return user;
     }
   }
-  return false;
+  return null;
 };
 
 const users = { 
@@ -110,19 +110,28 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  if (emailLookupHelper(req.body.email, users)) {
+    const user = emailLookupHelper(req.body.email, users);
+    if (req.body.password === users[user].password) {
+      res.cookie("user_id", user);
+      res.redirect("/urls");
+    } else {
+      res.status(403).send("Password incorrect.")
+    }
+  } else {
+    res.status(403).send("The email entered is not registered.")
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send("Please enter both a valid e-mail and a password.");
-  } else if (emailLookupHelper(req.body.email) === true) {
+  } else if (emailLookupHelper(req.body.email) !== null) {
     res.status(400).send("Email already in use.");
   } else {
   let user = generateRandomString();
