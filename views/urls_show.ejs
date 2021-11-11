@@ -8,6 +8,14 @@
 
 <body>
   <%- include('partials/_header') %>
+  <% if (userURL === undefined) { %>
+    <div class="card text-center">
+      <div class="card-header"></div>
+      <div class="card-body">
+        <h3 class="card-title">ShortURL does not exist</h3>
+      </div>
+    </div>
+    <% } else if (userURL !== undefined) { %>
   <% if (user !== undefined) { %>
     <% if (user.id === userURL.userID) { %>
   <div class="card text-center">
@@ -40,6 +48,7 @@
       <h3 class="card-title">Only the creating user can modify this URL</h3>
     </div>
   </div>
+  <% } %>
   <% } %>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
