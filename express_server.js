@@ -189,7 +189,7 @@ app.post("/urls/:id", (req, res) => {
 
 // When the user ends the session via logging out, causes the session cookie to expire and redirects to the urls page.
 app.post("/logout", (req, res) => {
-  req.session.user_id = null;
+  req.session = null;
   res.redirect("/urls");
 });
 
